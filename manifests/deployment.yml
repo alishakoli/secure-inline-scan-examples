@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: alishakolisecureinlinescanexamples 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alishakolisecureinlinescanexamples
+  template:
+    metadata:
+      labels:
+        app: alishakolisecureinlinescanexamples 
+    spec:
+      containers:
+        - name: alishakolisecureinlinescanexamples 
+          image: sysdigdemoacr.azurecr.io/alishakolisecureinlinescanexamples
+          ports:
+          - containerPort: 80
