@@ -14,7 +14,7 @@ variables:
   REGISTRY_HOST: $(dockerRegistryServiceConnection)
   IMAGE_NAME: "ubuntu-latest"
   IMAGE_TAG: "sha256:a8e3d627dcd4dd18c7f8ddb0429c1f7e2b213d5ada8e7558ef8798dbfde9ed32"
-  REGISTRY_CONNECTION: sysdigservice
+  REGISTRY_CONNECTION: "sysdigservice"
 
 steps:
 
