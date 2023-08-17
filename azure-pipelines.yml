@@ -5,75 +5,87 @@
 trigger:
 - main
 
-resources:
-- repo: self
+pool:
+  vmImage: ubuntu-latest
 
 variables:
+  CACHE_FOLDER: $(Pipeline.Workspace)/cache/
+  SYSDIG_SECURE_ENDPOINT: "https://eu1.app.sysdig.com"
+  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
+  IMAGE_NAME: "e_minguez/my-example-app"
+  IMAGE_TAG: "latest"
+  REGISTRY_CONNECTION: "containerregistrytestpipeline-e_minguez"
 
-  # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '5e24dca1-a0a0-4a20-9933-6db2cdcbb1a5'
-  imageRepository: 'alishakolisecureinlinescanexamples'
-  containerRegistry: 'sysdigdemoacr.azurecr.io'
-  dockerfilePath: '**/Dockerfile'
-  tag: '$(Build.BuildId)'
-  imagePullSecret: 'sysdigdemoacr1146-auth'
+steps:
 
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'
+- task: Cache@2
+  inputs:
+    key: |
+      sysdig-cli-scanner-cache | "$(Agent.OS)" | "$(CACHE_FOLDER)/sysdig-cli-scanner" | "$(CACHE_FOLDER)/latest_version.txt" | "$(CACHE_FOLDER)/db/main.db.meta.json" | "$(CACHE_FOLDER)/scanner-cache/inlineScannerCache.db"
+    restoreKeys: |
+      sysdig-cli-scanner-cache | "$(Agent.OS)"
+      sysdig-cli-scanner-cache
+    path: $(CACHE_FOLDER)
+  displayName: Cache sysdig-cli-scanner and databases
 
+- task: Cache@2
+  displayName: Docker cache
+  inputs:
+    key: 'docker | "$(Agent.OS)" | cache'
+    path: $(Pipeline.Workspace)/docker
+    cacheHitVar: CACHE_RESTORED
 
-stages:
-- stage: Build
-  displayName: Build stage
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: $(vmImageName)
-    steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+- script: |
+    docker load -i $(Pipeline.Workspace)/docker/cache.tar
+  displayName: Docker restore
+  condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
 
-    - upload: manifests
-      artifact: manifests
+- task: Docker@2
+  inputs:
+    command: 'build'
+    Dockerfile: 'love/Containerfile'
+    buildContext: 'love/'
+    repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
+    tags: $(IMAGE_TAG)
+    addPipelineData: false
+    addBaseImageData: false
 
-- stage: Deploy
-  displayName: Deploy stage
-  dependsOn: Build
+- script: |
+    curl -sLO https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt
+    mkdir -p $(CACHE_FOLDER)/db/
+    if [ ! -f $(CACHE_FOLDER)/latest_version.txt ] || [ $(cat ./latest_version.txt) != $(cat $(CACHE_FOLDER)/latest_version.txt) ]; then
+      cp ./latest_version.txt $(CACHE_FOLDER)/latest_version.txt
+      curl -sL -o $(CACHE_FOLDER)/sysdig-cli-scanner "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(cat $(CACHE_FOLDER)/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+      chmod +x $(CACHE_FOLDER)/sysdig-cli-scanner
+    else
+      echo "sysdig-cli-scanner latest version already downloaded"
+    fi
+  displayName: Download the sysdig-cli-scanner if needed
 
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy
-    pool:
-      vmImage: $(vmImageName)
-    environment: 'alishakolisecureinlinescanexamples.default'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: KubernetesManifest@0
-            displayName: Create imagePullSecret
-            inputs:
-              action: createSecret
-              secretName: $(imagePullSecret)
-              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+- script: |
+    $(CACHE_FOLDER)/sysdig-cli-scanner \
+      --apiurl $(SYSDIG_SECURE_ENDPOINT) \
+      --console-log \
+      --dbpath=$(CACHE_FOLDER)/db/ \
+      --cachepath=$(CACHE_FOLDER)/scanner-cache/ \
+      docker://$(REGISTRY_HOST)/$(IMAGE_NAME):$(IMAGE_TAG) \
+  displayName: Run the sysdig-cli-scanner
+  env:
+    SECURE_API_TOKEN: $(TOKEN)
 
-          - task: KubernetesManifest@0
-            displayName: Deploy to Kubernetes cluster
-            inputs:
-              action: deploy
-              manifests: |
-                $(Pipeline.Workspace)/manifests/deployment.yml
-                $(Pipeline.Workspace)/manifests/service.yml
-              imagePullSecrets: |
-                $(imagePullSecret)
-              containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)
+- task: Docker@2
+  displayName: Push the container image
+  inputs:
+    containerRegistry: $(REGISTRY_CONNECTION)
+    repository: $(IMAGE_NAME)
+    command: push
+    tags: $(IMAGE_TAG)
+    addPipelineData: false
+    addBaseImageData: false
+
+- script: |
+    mkdir -p $(Pipeline.Workspace)/docker
+    docker save $(docker images -q) -o $(Pipeline.Workspace)/docker/cache.tar
+  displayName: Docker save
+  condition: and(not(canceled()), or(failed(), ne(variables.CACHE_RESTORED, 'true')))
 
