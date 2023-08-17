@@ -11,10 +11,10 @@ pool:
 variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
   SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/"
-  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
+  REGISTRY_HOST: $(dockerRegistryServiceConnection)
   IMAGE_NAME: "ubuntu-latest"
-  IMAGE_TAG: "latest"
-  REGISTRY_CONNECTION: "containerregistrytestpipeline-ubuntu-latest"
+  IMAGE_TAG: "sha256:a8e3d627dcd4dd18c7f8ddb0429c1f7e2b213d5ada8e7558ef8798dbfde9ed32"
+  REGISTRY_CONNECTION: $(dockerRegistryServiceConnection)
 
 steps:
 
