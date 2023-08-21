@@ -6,12 +6,11 @@ pool:
 
 variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
-  SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/"
-  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
-  IMAGE_NAME: "test/my-example-app"
+  SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/secure/#/home"
+  REGISTRY_HOST: "quay.io"
+  IMAGE_NAME: "e_minguez/my-example-app"
   IMAGE_TAG: "latest"
   REGISTRY_CONNECTION: "sysdigservice"
-  SECURE_API_TOKEN: "73e79ad6-110a-4732-8b73-332628517a48"
 
 steps:
 
@@ -40,20 +39,12 @@ steps:
 - task: Docker@2
   inputs:
     command: 'build'
-- task: Docker@2
-  inputs:
-    command: 'build'
     Dockerfile: 'love/Containerfile'
-    buildContext: '- task: Docker@2
-  inputs:
-containerRegistry: 'ContainerRegistryTestpipeline'
-command: 'build'
-Dockerfile: 'love/Containerfile'
-buildContext: 'love/''
-repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
-tags: $(IMAGE_TAG)
-addPipelineData: false
-addBaseImageData: false
+    buildContext: 'love/'
+    repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
+    tags: $(IMAGE_TAG)
+    addPipelineData: false
+    addBaseImageData: false
 
 - script: |
     curl -sLO https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt
@@ -66,7 +57,8 @@ addBaseImageData: false
       echo "sysdig-cli-scanner latest version already downloaded"
     fi
   displayName: Download the sysdig-cli-scanner if needed
-  - script: |
+
+- script: |
     $(CACHE_FOLDER)/sysdig-cli-scanner \
       --apiurl $(SYSDIG_SECURE_ENDPOINT) \
       --console-log \
@@ -75,7 +67,7 @@ addBaseImageData: false
       docker://$(REGISTRY_HOST)/$(IMAGE_NAME):$(IMAGE_TAG) \
   displayName: Run the sysdig-cli-scanner
   env:
-    SECURE_API_TOKEN: "73e79ad6-110a-4732-8b73-332628517a48"
+    SECURE_API_TOKEN: $(TOKEN)
 
 - task: Docker@2
   displayName: Push the container image
