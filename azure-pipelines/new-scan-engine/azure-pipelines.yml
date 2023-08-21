@@ -43,7 +43,7 @@ steps:
   inputs:
     command: 'build'
     Dockerfile: 'azure-pipelines/new-scan-engine/love/Containerfile'
-    buildContext: 'love/'
+    buildContext: 'azure-pipelines/new-scan-engine/love/'
     repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
     tags: $(IMAGE_TAG)
     addPipelineData: false
