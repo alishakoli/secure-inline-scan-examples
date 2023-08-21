@@ -7,7 +7,7 @@ pool:
 variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
   SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/secure/#/home"
-  REGISTRY_HOST: "quay.io"
+  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
   IMAGE_NAME: "e_minguez/my-example-app"
   IMAGE_TAG: "latest"
   REGISTRY_CONNECTION: "sysdigservice"
@@ -36,10 +36,13 @@ steps:
   displayName: Docker restore
   condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
 
+- script: |
+    pwd
+    ls -al
 - task: Docker@2
   inputs:
     command: 'build'
-    Dockerfile: 'love/Containerfile'
+    Dockerfile: '$(System.DefaultWorkingDirectory)/love/Containerfile'
     buildContext: 'love/'
     repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
     tags: $(IMAGE_TAG)
