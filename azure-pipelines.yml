@@ -7,10 +7,11 @@ pool:
 variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
   SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/"
-  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
-  IMAGE_NAME: "newimage-alishakoli/secure-inline-scan-examples"
-  IMAGE_TAG: "30"
-  REGISTRY_CONNECTION: "containerregistrytestpipeline.eastus.data.azurecr.io"
+  REGISTRY_HOST: "https://github.com/alishakoli/secure-inline-scan-examples/tree/main/azure-pipelines/new-scan-engine/love"
+  IMAGE_NAME: "newimage-alishakoli/secure-inline-scan-examples2"
+  IMAGE_TAG: "33"
+  REGISTRY_CONNECTION: "sysdigservice"
+  SECURE_API_TOKEN: "73e79ad6-110a-4732-8b73-332628517a48"
 
 steps:
 
@@ -67,7 +68,7 @@ steps:
       docker://$(REGISTRY_HOST)/$(IMAGE_NAME):$(IMAGE_TAG) \
   displayName: Run the sysdig-cli-scanner
   env:
-    SECURE_API_TOKEN: $(TOKEN)
+    SECURE_API_TOKEN: "73e79ad6-110a-4732-8b73-332628517a48"
 
 - task: Docker@2
   displayName: Push the container image
