@@ -28,7 +28,7 @@ steps:
     restoreKeys: |
       sysdig-cli-scanner-cache | "$(Agent.OS)"
       sysdig-cli-scanner-cache
-    path: $(CACHE_FOLDER)
+      path: $(CACHE_FOLDER)
   displayName: Cache sysdig-cli-scanner and databases
 
 - task: Cache@2
