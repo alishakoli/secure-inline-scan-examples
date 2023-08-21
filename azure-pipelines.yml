@@ -12,12 +12,11 @@ variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
   SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/"
   REGISTRY_HOST: $(dockerRegistryServiceConnection)
-  IMAGE_NAME: "ubuntu-latest"
-  IMAGE_TAG: "sha256:a8e3d627dcd4dd18c7f8ddb0429c1f7e2b213d5ada8e7558ef8798dbfde9ed32"
+  IMAGE_NAME: "image-alishakoli/docker-hello-world-flask"
+  IMAGE_TAG: "23"
   REGISTRY_CONNECTION: "sysdigservice"
 
 steps:
-
 - task: Cache@2
   inputs:
     key: |
