@@ -66,8 +66,7 @@ steps:
       echo "sysdig-cli-scanner latest version already downloaded"
     fi
   displayName: Download the sysdig-cli-scanner if needed
-
-- script: |
+  - script: |
     $(CACHE_FOLDER)/sysdig-cli-scanner \
       --apiurl $(SYSDIG_SECURE_ENDPOINT) \
       --console-log \
