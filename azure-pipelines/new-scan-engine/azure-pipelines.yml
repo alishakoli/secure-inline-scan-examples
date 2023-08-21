@@ -10,7 +10,7 @@ variables:
   REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
   IMAGE_NAME: "alishakoli/secure-inline-scan-examples"
   IMAGE_TAG: "29"
-  REGISTRY_CONNECTION: "sysdigtest"
+  REGISTRY_CONNECTION: "sysdigservice"
 
 steps:
 
