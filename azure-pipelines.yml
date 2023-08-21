@@ -47,7 +47,12 @@ steps:
   inputs:
     command: 'build'
     Dockerfile: 'love/Containerfile'
-    buildContext: 'love/'
+    buildContext: '- task: Docker@2
+  inputs:
+    containerRegistry: 'ContainerRegistryTestpipeline'
+    command: 'buildAndPush'
+    Dockerfile: 'love/Containerfile'
+    buildContext: 'love/''
     repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
     tags: $(IMAGE_TAG)
     addPipelineData: false
