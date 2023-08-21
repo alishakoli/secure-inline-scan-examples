@@ -40,7 +40,7 @@ steps:
 - task: Docker@2
   inputs:
     command: 'build'
-    Dockerfile: 'love/Containerfile'
+    Dockerfile: 'sysdiglabs/secure-inline-scan-examples/tree/main/azure-pipelines/new-scan-engine/love'
     buildContext: 'love/'
     repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
     tags: $(IMAGE_TAG)
