@@ -1,4 +1,8 @@
 # Deploy to Azure Kubernetes Service
+- task: Docker@2
+  inputs:
+    command: 'buildAndPush'
+    Dockerfile: 'secure-inline-scan-examples/azure-pipelines/new-scan-engine/love /Containerfile'
 # Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
