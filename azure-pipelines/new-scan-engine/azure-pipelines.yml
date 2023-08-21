@@ -46,14 +46,14 @@ steps:
     Dockerfile: 'love/Containerfile'
     buildContext: '- task: Docker@2
   inputs:
-    containerRegistry: 'ContainerRegistryTestpipeline'
-    command: 'build'
-    Dockerfile: 'love/Containerfile'
-    buildContext: 'love/''
-    repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
-    tags: $(IMAGE_TAG)
-    addPipelineData: false
-    addBaseImageData: false
+containerRegistry: 'ContainerRegistryTestpipeline'
+command: 'build'
+Dockerfile: 'love/Containerfile'
+buildContext: 'love/''
+repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
+tags: $(IMAGE_TAG)
+addPipelineData: false
+addBaseImageData: false
 
 - script: |
     curl -sLO https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt
