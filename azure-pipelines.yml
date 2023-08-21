@@ -1,11 +1,3 @@
-# Deploy to Azure Kubernetes Service
-- task: Docker@2
-  inputs:
-    command: 'buildAndPush'
-    Dockerfile: 'secure-inline-scan-examples/azure-pipelines/new-scan-engine/love /Containerfile'
-# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
 - main
 
@@ -15,12 +7,13 @@ pool:
 variables:
   CACHE_FOLDER: $(Pipeline.Workspace)/cache/
   SYSDIG_SECURE_ENDPOINT: "https://app.us4.sysdig.com/"
-  REGISTRY_HOST: $(dockerRegistryServiceConnection)
-  IMAGE_NAME: "image-alishakoli/docker-hello-world-flask"
-  IMAGE_TAG: "23"
-  REGISTRY_CONNECTION: "sysdigservice"
+  REGISTRY_HOST: "containerregistrytestpipeline.azurecr.io"
+  IMAGE_NAME: "newimage-alishakoli/secure-inline-scan-examples"
+  IMAGE_TAG: "30"
+  REGISTRY_CONNECTION: "containerregistrytestpipeline.eastus.data.azurecr.io"
 
 steps:
+
 - task: Cache@2
   inputs:
     key: |
@@ -28,7 +21,7 @@ steps:
     restoreKeys: |
       sysdig-cli-scanner-cache | "$(Agent.OS)"
       sysdig-cli-scanner-cache
-      path: $(CACHE_FOLDER)
+    path: $(CACHE_FOLDER)
   displayName: Cache sysdig-cli-scanner and databases
 
 - task: Cache@2
@@ -47,12 +40,7 @@ steps:
   inputs:
     command: 'build'
     Dockerfile: 'love/Containerfile'
-    buildContext: '- task: Docker@2
-  inputs:
-    containerRegistry: 'ContainerRegistryTestpipeline'
-    command: 'buildAndPush'
-    Dockerfile: 'love/Containerfile'
-    buildContext: 'love/''
+    buildContext: 'love/'
     repository: $(REGISTRY_HOST)/$(IMAGE_NAME)
     tags: $(IMAGE_TAG)
     addPipelineData: false
@@ -96,4 +84,3 @@ steps:
     docker save $(docker images -q) -o $(Pipeline.Workspace)/docker/cache.tar
   displayName: Docker save
   condition: and(not(canceled()), or(failed(), ne(variables.CACHE_RESTORED, 'true')))
-
